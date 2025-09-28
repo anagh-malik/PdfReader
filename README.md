@@ -1,6 +1,6 @@
 # PDF Reader Chat with Ollama LLMs
 
-This project lets you **chat with your PDF documents** using local Large Language Models (LLMs) served by [Ollama](https://ollama.com/). Upload a PDF, select an AI model (Llama 3.1, Mistral, GPT-OSS, or Gemma 2), and ask questions about the document in a chat interface. Answers are streamed live and rendered as Markdown for a rich, interactive experience—all on your own machine.
+This project lets you **chat with your PDF documents** using local Large Language Models (LLMs) served by [Ollama](https://ollama.com/). Upload a PDF, select an AI model (Llama 3.1, Mistral, GPT-OSS, or Gemma 2), and ask questions about the document in a chat interface. Answers are streamed live and rendered as Markdown for a rich, interactive experience—all on your own machine. Thanks to Deepseek - Best Frontend visuals, ChatGPT - Backend making genius, Copliot - A sew needle that links the beautiful frontend to the backend; that this exists, a work of the best models working on the best prompts.
 
 ---
 
