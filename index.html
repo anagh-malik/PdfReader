@@ -1,0 +1,1164 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Select AI Model - Chat with PDF</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <style>
+      :root {
+        --primary-color: #4361ee;
+        --secondary-color: #3a0ca3;
+        --light-color: #f8f9fa;
+        --dark-color: #212529;
+        --success-color: #4cc9f0;
+        --user-message-bg: #e3f2fd;
+        --bot-message-bg: #f5f5f5;
+        --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        --border-radius: 8px;
+        --transition: all 0.3s ease;
+      }
+
+      /* Dark mode variables */
+      :root.dark-mode {
+        --primary-color: #5a7aff;
+        --secondary-color: #7b4dff;
+        --light-color: #1a1a1a;
+        --dark-color: #f8f9fa;
+        --success-color: #4cc9f0;
+        --user-message-bg: #2a3f5f;
+        --bot-message-bg: #2d2d2d;
+        --shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        line-height: 1.6;
+        color: var(--dark-color);
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        min-height: 100vh;
+        padding: 20px;
+        transition: var(--transition);
+      }
+
+      .dark-mode body {
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        background-color: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+        min-height: 80vh;
+        position: relative;
+        transition: var(--transition);
+      }
+
+      .dark-mode .container {
+        background-color: #2d2d2d;
+      }
+
+      header {
+        background: linear-gradient(
+          to right,
+          var(--primary-color),
+          var(--secondary-color)
+        );
+        color: white;
+        padding: 20px;
+        text-align: center;
+        position: relative;
+      }
+
+      .dark-mode header {
+        background: linear-gradient(to right, #3a0ca3, #4361ee);
+      }
+
+      header h1 {
+        margin-bottom: 10px;
+        font-size: 2.2rem;
+      }
+
+      header p {
+        opacity: 0.9;
+        font-size: 1.1rem;
+      }
+
+      /* Dark mode toggle button */
+      .dark-mode-toggle {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: rgba(255, 255, 255, 0.2);
+        border: none;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        transition: var(--transition);
+      }
+
+      .dark-mode-toggle:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: scale(1.1);
+      }
+
+      /* Model Selection Page Styles */
+      .model-selection {
+        padding: 40px 20px;
+        text-align: center;
+      }
+
+      .model-selection h2 {
+        margin-bottom: 10px;
+        color: var(--secondary-color);
+      }
+
+      .model-selection p {
+        margin-bottom: 30px;
+        color: #666;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .dark-mode .model-selection p {
+        color: #aaa;
+      }
+
+      .models-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 20px;
+        max-width: 1000px;
+        margin: 0 auto;
+      }
+
+      .model-card {
+        background: var(--light-color);
+        border-radius: var(--border-radius);
+        padding: 25px 20px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        transition: var(--transition);
+        cursor: pointer;
+        border: 2px solid transparent;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        height: 100%;
+      }
+
+      .dark-mode .model-card {
+        background: #3a3a3a;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      }
+
+      .model-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        border-color: var(--primary-color);
+      }
+
+      .dark-mode .model-card:hover {
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+      }
+
+      .model-card.selected {
+        border-color: var(--secondary-color);
+        background: rgba(67, 97, 238, 0.05);
+      }
+
+      .dark-mode .model-card.selected {
+        background: rgba(67, 97, 238, 0.15);
+      }
+
+      .model-icon {
+        font-size: 2.5rem;
+        margin-bottom: 15px;
+        color: var(--primary-color);
+      }
+
+      .model-name {
+        font-size: 1.3rem;
+        font-weight: bold;
+        margin-bottom: 10px;
+        color: var(--dark-color);
+      }
+
+      .model-provider {
+        font-size: 0.9rem;
+        color: #666;
+        margin-bottom: 15px;
+      }
+
+      .dark-mode .model-provider {
+        color: #aaa;
+      }
+
+      .model-description {
+        font-size: 0.95rem;
+        color: #555;
+        margin-bottom: 15px;
+        flex-grow: 1;
+      }
+
+      .dark-mode .model-description {
+        color: #ccc;
+      }
+
+      .model-features {
+        font-size: 0.85rem;
+        color: #777;
+        margin-top: auto;
+        width: 100%;
+      }
+
+      .dark-mode .model-features {
+        color: #aaa;
+      }
+
+      .model-features ul {
+        list-style: none;
+        padding: 0;
+      }
+
+      .model-features li {
+        margin-bottom: 5px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .model-features i {
+        margin-right: 5px;
+        color: var(--success-color);
+      }
+
+      .select-btn {
+        background-color: var(--primary-color);
+        color: white;
+        border: none;
+        padding: 8px 20px;
+        border-radius: 30px;
+        cursor: pointer;
+        font-weight: bold;
+        margin-top: 15px;
+        transition: var(--transition);
+      }
+
+      .select-btn:hover {
+        background-color: var(--secondary-color);
+        transform: scale(1.05);
+      }
+
+      /* Chat Page Styles (Initially Hidden) */
+      .chat-page {
+        display: none;
+        opacity: 0;
+        transition: opacity 0.5s ease;
+      }
+
+      .chat-page.active {
+        display: block;
+        opacity: 1;
+      }
+
+      .upload-section {
+        padding: 20px;
+        background-color: var(--light-color);
+        border-bottom: 1px solid #ddd;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        align-items: center;
+      }
+
+      .dark-mode .upload-section {
+        background-color: #3a3a3a;
+        border-bottom-color: #555;
+      }
+
+      .upload-btn {
+        background-color: var(--primary-color);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: var(--border-radius);
+        cursor: pointer;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: var(--transition);
+      }
+
+      .upload-btn:hover {
+        background-color: var(--secondary-color);
+        transform: translateY(-2px);
+      }
+
+      .file-info {
+        flex: 1;
+        min-width: 200px;
+      }
+
+      .file-name {
+        font-weight: bold;
+        color: var(--secondary-color);
+      }
+
+      .chat-container {
+        display: flex;
+        flex-direction: column;
+        height: 500px;
+      }
+
+      #chatBox {
+        flex: 1;
+        padding: 20px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+      }
+
+      .dark-mode #chatBox {
+        background-color: #2d2d2d;
+      }
+
+      .message {
+        max-width: 80%;
+        padding: 12px 16px;
+        border-radius: 18px;
+        position: relative;
+        animation: fadeIn 0.3s ease;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .user-message {
+        align-self: flex-end;
+        background-color: var(--user-message-bg);
+        border-bottom-right-radius: 4px;
+      }
+
+      .bot-message {
+        align-self: flex-start;
+        background-color: var(--bot-message-bg);
+        border-bottom-left-radius: 4px;
+      }
+
+      .message-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 5px;
+        font-weight: bold;
+      }
+
+      .user-header {
+        color: var(--primary-color);
+      }
+
+      .bot-header {
+        color: var(--secondary-color);
+      }
+
+      .message-content {
+        line-height: 1.5;
+      }
+
+      .message-content pre,
+      .message-content code {
+        background: rgba(0, 0, 0, 0.05);
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-family: "Courier New", monospace;
+        overflow-x: auto;
+      }
+
+      .dark-mode .message-content pre,
+      .dark-mode .message-content code {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .message-content pre {
+        padding: 10px;
+        margin: 10px 0;
+      }
+
+      .input-area {
+        display: flex;
+        padding: 15px;
+        background-color: var(--light-color);
+        border-top: 1px solid #ddd;
+      }
+
+      .dark-mode .input-area {
+        background-color: #3a3a3a;
+        border-top-color: #555;
+      }
+
+      #userInput {
+        flex: 1;
+        padding: 12px 15px;
+        border: 1px solid #ddd;
+        border-radius: 30px;
+        font-size: 1rem;
+        outline: none;
+        transition: border-color 0.3s;
+        background-color: white;
+        color: #333;
+      }
+
+      .dark-mode #userInput {
+        background-color: #2d2d2d;
+        border-color: #555;
+        color: #f8f9fa;
+      }
+
+      #userInput:focus {
+        border-color: var(--primary-color);
+      }
+
+      #sendBtn {
+        background-color: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 45px;
+        height: 45px;
+        margin-left: 10px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: var(--transition);
+      }
+
+      #sendBtn:hover {
+        background-color: var(--secondary-color);
+        transform: scale(1.05);
+      }
+
+      #sendBtn:disabled {
+        background-color: #ccc;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .dark-mode #sendBtn:disabled {
+        background-color: #555;
+      }
+
+      .typing-indicator {
+        display: none;
+        align-self: flex-start;
+        background-color: var(--bot-message-bg);
+        padding: 12px 16px;
+        border-radius: 18px;
+        border-bottom-left-radius: 4px;
+        margin-bottom: 10px;
+      }
+
+      .welcome-message {
+        text-align: center;
+        padding: 30px 20px;
+        color: #666;
+      }
+
+      .dark-mode .welcome-message {
+        color: #aaa;
+      }
+
+      .welcome-message i {
+        font-size: 3rem;
+        color: var(--primary-color);
+        margin-bottom: 15px;
+      }
+
+      .suggestions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 20px;
+        justify-content: center;
+      }
+
+      .suggestion {
+        background-color: var(--light-color);
+        border: 1px solid #ddd;
+        padding: 8px 15px;
+        border-radius: 20px;
+        cursor: pointer;
+        transition: var(--transition);
+      }
+
+      .dark-mode .suggestion {
+        background-color: #3a3a3a;
+        border-color: #555;
+      }
+
+      .suggestion:hover {
+        background-color: var(--primary-color);
+        color: white;
+      }
+
+      footer {
+        text-align: center;
+        padding: 15px;
+        font-size: 0.9rem;
+        color: #666;
+        background-color: var(--light-color);
+        border-top: 1px solid #ddd;
+      }
+
+      .dark-mode footer {
+        background-color: #3a3a3a;
+        color: #aaa;
+        border-top-color: #555;
+      }
+
+      .back-to-models {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        background: rgba(255, 255, 255, 0.9);
+        border: none;
+        border-radius: 30px;
+        padding: 8px 15px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 0.9rem;
+        transition: var(--transition);
+      }
+
+      .dark-mode .back-to-models {
+        background: rgba(45, 45, 45, 0.9);
+        color: #f8f9fa;
+      }
+
+      .back-to-models:hover {
+        background: white;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      }
+
+      .dark-mode .back-to-models:hover {
+        background: #2d2d2d;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+      }
+
+      @media (max-width: 768px) {
+        .message {
+          max-width: 90%;
+        }
+
+        .upload-section {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+
+        .file-info {
+          width: 100%;
+        }
+
+        .models-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .dark-mode-toggle {
+          top: 15px;
+          right: 15px;
+          width: 35px;
+          height: 35px;
+        }
+      }
+
+      #pdfUpload {
+        display: none;
+      }
+
+      .typing-dots {
+        display: flex;
+        gap: 4px;
+      }
+
+      .typing-dots span {
+        height: 8px;
+        width: 8px;
+        background-color: #999;
+        border-radius: 50%;
+        display: inline-block;
+        animation: typing 1.4s infinite ease-in-out;
+      }
+
+      .dark-mode .typing-dots span {
+        background-color: #aaa;
+      }
+
+      .typing-dots span:nth-child(1) {
+        animation-delay: -0.32s;
+      }
+      .typing-dots span:nth-child(2) {
+        animation-delay: -0.16s;
+      }
+
+      @keyframes typing {
+        0%,
+        80%,
+        100% {
+          transform: scale(0.8);
+          opacity: 0.5;
+        }
+        40% {
+          transform: scale(1);
+          opacity: 1;
+        }
+      }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <button
+          class="dark-mode-toggle"
+          id="darkModeToggle"
+          title="Toggle dark mode"
+        >
+          <i class="fas fa-moon"></i>
+        </button>
+        <h1><i class="fas fa-file-pdf"></i> Chat with PDF</h1>
+        <p>Select an AI model and start chatting with your documents</p>
+      </header>
+
+      <!-- Model Selection Page -->
+      <section class="model-selection" id="modelSelection">
+        <h2>Choose Your AI Assistant</h2>
+        <p>
+          Select one of the powerful AI models below to help you analyze and
+          understand your PDF documents.
+        </p>
+
+        <div class="models-grid">
+          <!-- Llama 3.1 -->
+          <div class="model-card" data-model="llama-3.1">
+            <div class="model-icon">
+              <i class="fas fa-robot"></i>
+            </div>
+            <div class="model-name">Llama 3.1</div>
+            <div class="model-provider">Meta</div>
+            <div class="model-description">
+              A versatile open-source model with strong reasoning capabilities
+              and broad knowledge base.
+            </div>
+            <div class="model-features">
+              <ul>
+                <li>
+                  <i class="fas fa-check"></i> Strong reasoning capabilities
+                </li>
+                <li><i class="fas fa-check"></i> Broad knowledge base</li>
+                <li><i class="fas fa-check"></i> Open-source</li>
+              </ul>
+            </div>
+            <button class="select-btn">Select Model</button>
+          </div>
+          <!-- mistral -->
+          <div class="model-card" data-model="mistral">
+            <div class="model-icon">
+              <i class="fas fa-wind"></i>
+            </div>
+            <div class="model-name">Mistral</div>
+            <div class="model-provider">Mistral AI</div>
+            <div class="model-description">
+              Efficient and fast model with strong multilingual capabilities and
+              concise responses.
+            </div>
+            <div class="model-features">
+              <ul>
+                <li><i class="fas fa-check"></i> Multilingual capabilities</li>
+                <li><i class="fas fa-check"></i> Fast and efficient</li>
+                <li><i class="fas fa-check"></i> Concise responses</li>
+              </ul>
+            </div>
+            <button class="select-btn">Select Model</button>
+          </div>
+
+          <!-- gpt-oss -->
+          <div class="model-card" data-model="gpt-oss">
+            <div class="model-icon">
+              <i class="fas fa-code"></i>
+            </div>
+            <div class="model-name">GPT-OSS</div>
+            <div class="model-provider">OpenAI</div>
+            <div class="model-description">
+              OpenAI's open-source offering with balanced performance across
+              various document types.
+            </div>
+            <div class="model-features">
+              <ul>
+                <li><i class="fas fa-check"></i> Balanced performance</li>
+                <li>
+                  <i class="fas fa-check"></i> Versatile across document types
+                </li>
+                <li><i class="fas fa-check"></i> OpenAI technology</li>
+              </ul>
+            </div>
+            <button class="select-btn">Select Model</button>
+          </div>
+
+          <!-- gemma 2 -->
+          <div class="model-card" data-model="gemma-2">
+            <div class="model-icon">
+              <i class="fas fa-gem"></i>
+            </div>
+            <div class="model-name">Gemma 2</div>
+            <div class="model-provider">Google DeepMind</div>
+            <div class="model-description">
+              Lightweight yet powerful model designed for efficient text
+              understanding and generation.
+            </div>
+            <div class="model-features">
+              <ul>
+                <li><i class="fas fa-check"></i> Lightweight and efficient</li>
+                <li><i class="fas fa-check"></i> Strong text understanding</li>
+                <li><i class="fas fa-check"></i> Google DeepMind technology</li>
+              </ul>
+            </div>
+            <button class="select-btn">Select Model</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Chat Page (Initially Hidden) -->
+      <section class="chat-page" id="chatPage">
+        <button class="back-to-models" id="backToModels">
+          <i class="fas fa-arrow-left"></i> Change Model
+        </button>
+
+        <div class="selected-model-info">
+          <h2 id="selectedModelName">Selected Model</h2>
+          <p id="selectedModelDescription">
+            Model description will appear here
+          </p>
+        </div>
+
+        <section class="upload-section">
+          <button class="upload-btn" id="uploadBtn">
+            <i class="fas fa-upload"></i> Upload PDF
+          </button>
+          <input type="file" id="pdfUpload" accept=".pdf" />
+          <div class="file-info">
+            <span id="fileName">No file selected</span>
+          </div>
+        </section>
+
+        <div class="chat-container">
+          <div id="chatBox">
+            <div class="welcome-message">
+              <i class="fas fa-comments"></i>
+              <h2>Welcome to PDF Chat</h2>
+              <p>
+                Upload a PDF file to start asking questions about its content.
+              </p>
+              <div class="suggestions">
+                <div class="suggestion">What is this document about?</div>
+                <div class="suggestion">Summarize the main points</div>
+                <div class="suggestion">List the key findings</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="typing-indicator" id="typingIndicator">
+            <div class="message-header bot-header">
+              <i class="fas fa-robot"></i> PDF Assistant
+            </div>
+            <div class="typing-dots">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+          </div>
+
+          <div class="input-area">
+            <input
+              type="text"
+              id="userInput"
+              placeholder="Ask a question about your PDF..."
+              disabled
+            />
+            <button id="sendBtn" disabled>
+              <i class="fas fa-paper-plane"></i>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <footer>
+        <p>
+          PDF Chat Interface &copy; 2025 | Models are Ollama's work | Team:
+          Deepseek (frontend), ChatGPT (backend), Copliot (frontend to backend
+          flow)
+        </p>
+      </footer>
+    </div>
+
+    <script>
+      // Dark mode toggle functionality
+      const darkModeToggle = document.getElementById("darkModeToggle");
+      const prefersDarkScheme = window.matchMedia(
+        "(prefers-color-scheme: dark)"
+      );
+
+      // Check for saved theme preference or use OS preference
+      const currentTheme =
+        localStorage.getItem("theme") ||
+        (prefersDarkScheme.matches ? "dark" : "light");
+
+      // Apply the theme
+      if (currentTheme === "dark") {
+        document.documentElement.classList.add("dark-mode");
+        darkModeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+      }
+
+      // Toggle dark mode
+      darkModeToggle.addEventListener("click", function () {
+        if (document.documentElement.classList.contains("dark-mode")) {
+          document.documentElement.classList.remove("dark-mode");
+          localStorage.setItem("theme", "light");
+          darkModeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+        } else {
+          document.documentElement.classList.add("dark-mode");
+          localStorage.setItem("theme", "dark");
+          darkModeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+        }
+      });
+
+      // Model data
+      const models = {
+        "llama-3.1": {
+          name: "Llama 3.1",
+          provider: "Meta",
+          description:
+            "A versatile open-source model with strong reasoning capabilities and broad knowledge base.",
+          icon: "fas fa-robot",
+        },
+        mistral: {
+          name: "Mistral",
+          provider: "Mistral AI",
+          description:
+            "Efficient and fast model with strong multilingual capabilities and concise responses.",
+          icon: "fas fa-wind",
+        },
+        "gpt-oss": {
+          name: "GPT-OSS",
+          provider: "OpenAI",
+          description:
+            "OpenAI's open-source offering with balanced performance across various document types.",
+          icon: "fas fa-code",
+        },
+        "gemma-2": {
+          name: "Gemma 2",
+          provider: "Google DeepMind",
+          description:
+            "Lightweight yet powerful model designed for efficient text understanding and generation.",
+          icon: "fas fa-gem",
+        },
+      };
+
+      // DOM Elements
+      const modelSelection = document.getElementById("modelSelection");
+      const chatPage = document.getElementById("chatPage");
+      const backToModelsBtn = document.getElementById("backToModels");
+      const selectedModelName = document.getElementById("selectedModelName");
+      const selectedModelDescription = document.getElementById(
+        "selectedModelDescription"
+      );
+      const modelCards = document.querySelectorAll(".model-card");
+      const selectBtns = document.querySelectorAll(".select-btn");
+
+      // Chat elements
+      const chatBox = document.getElementById("chatBox");
+      const userInput = document.getElementById("userInput");
+      const sendBtn = document.getElementById("sendBtn");
+      const uploadBtn = document.getElementById("uploadBtn");
+      const pdfUpload = document.getElementById("pdfUpload");
+      const fileName = document.getElementById("fileName");
+      const typingIndicator = document.getElementById("typingIndicator");
+      const suggestions = document.querySelectorAll(".suggestion");
+
+      let selectedModel = null;
+
+      // Model selection functionality
+      modelCards.forEach((card) => {
+        card.addEventListener("click", (e) => {
+          // Don't trigger if the click was on the select button
+          if (e.target.classList.contains("select-btn")) return;
+
+          const modelId = card.dataset.model;
+          selectModel(modelId);
+        });
+      });
+
+      selectBtns.forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation(); // Prevent card click event
+          const card = btn.closest(".model-card");
+          const modelId = card.dataset.model;
+          selectModel(modelId);
+        });
+      });
+
+      function selectModel(modelId) {
+        // Update UI to show selected model
+        modelCards.forEach((card) => {
+          card.classList.remove("selected");
+        });
+
+        const selectedCard = document.querySelector(
+          `[data-model="${modelId}"]`
+        );
+        selectedCard.classList.add("selected");
+
+        // Store selected model
+        selectedModel = modelId;
+
+        // Show confirmation and transition to chat
+        setTimeout(() => {
+          // Update chat page with selected model info
+          selectedModelName.innerHTML = `<i class="${models[modelId].icon}"></i> ${models[modelId].name}`;
+          selectedModelDescription.textContent = models[modelId].description;
+
+          // Transition to chat page
+          modelSelection.style.display = "none";
+          chatPage.classList.add("active");
+
+          // Add welcome message with model info
+          const welcomeMessage = document.querySelector(".welcome-message");
+          if (welcomeMessage) {
+            welcomeMessage.querySelector(
+              "h2"
+            ).textContent = `Chat with ${models[modelId].name}`;
+            welcomeMessage.querySelector(
+              "p"
+            ).textContent = `You're now chatting with ${models[modelId].name}. Upload a PDF to get started.`;
+          }
+        }, 500);
+      }
+
+      // Back to models functionality
+      backToModelsBtn.addEventListener("click", () => {
+        chatPage.classList.remove("active");
+        setTimeout(() => {
+          modelSelection.style.display = "block";
+        }, 300);
+      });
+
+      // Chat functionality (same as before)
+      function enableInput() {
+        userInput.disabled = false;
+        sendBtn.disabled = false;
+        userInput.focus();
+      }
+
+      function showTypingIndicator() {
+        typingIndicator.style.display = "block";
+        chatBox.scrollTop = chatBox.scrollHeight;
+      }
+
+      function hideTypingIndicator() {
+        typingIndicator.style.display = "none";
+      }
+
+      function addMessage(sender, text, isHTML = false) {
+        const messageDiv = document.createElement("div");
+        messageDiv.className = `message ${sender}-message`;
+
+        const headerDiv = document.createElement("div");
+        headerDiv.className = `message-header ${sender}-header`;
+
+        if (sender === "user") {
+          headerDiv.innerHTML = `<i class="fas fa-user"></i> You`;
+        } else {
+          headerDiv.innerHTML = `<i class="fas fa-robot"></i> ${models[selectedModel].name}`;
+        }
+
+        const contentDiv = document.createElement("div");
+        contentDiv.className = "message-content";
+
+        if (isHTML) {
+          contentDiv.innerHTML = text;
+        } else {
+          contentDiv.textContent = text;
+        }
+
+        messageDiv.appendChild(headerDiv);
+        messageDiv.appendChild(contentDiv);
+
+        // Remove welcome message if it exists
+        const welcomeMessage = document.querySelector(".welcome-message");
+        if (welcomeMessage) {
+          welcomeMessage.remove();
+        }
+
+        chatBox.appendChild(messageDiv);
+        chatBox.scrollTop = chatBox.scrollHeight;
+      }
+
+      async function sendQuestion() {
+        const question = userInput.value.trim();
+        if (!question || !selectedModel) return;
+
+        addMessage("user", question);
+        userInput.value = "";
+        showTypingIndicator();
+
+        const response = await fetch("/ask", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            question,
+            model: selectedModel,
+            pdf_name: fileName.textContent || null,
+          }),
+        });
+
+        if (!response.ok) {
+          hideTypingIndicator();
+          addMessage("bot", "⚠️ Error: Failed to get response from server.");
+          return;
+        }
+
+        // Streaming response handling
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let botMsg = "";
+        let done = false;
+
+        // Add a placeholder bot message to update live
+        let botMsgDiv = document.createElement("div");
+        botMsgDiv.className = "message bot-message";
+        let headerDiv = document.createElement("div");
+        headerDiv.className = "message-header bot-header";
+        headerDiv.innerHTML = `<i class="fas fa-robot"></i> ${models[selectedModel].name}`;
+        let contentDiv = document.createElement("div");
+        contentDiv.className = "message-content";
+        botMsgDiv.appendChild(headerDiv);
+        botMsgDiv.appendChild(contentDiv);
+        chatBox.appendChild(botMsgDiv);
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        while (!done) {
+          const { value, done: streamDone } = await reader.read();
+          done = streamDone;
+          if (value) {
+            const chunk = decoder.decode(value, { stream: true });
+            chunk.split("data: ").forEach((part) => {
+              if (part.trim()) {
+                try {
+                  const json = JSON.parse(part.trim());
+                  botMsg += json.text;
+                  contentDiv.innerHTML = marked.parse(botMsg);
+                  chatBox.scrollTop = chatBox.scrollHeight;
+                } catch (e) {}
+              }
+            });
+          }
+        }
+        hideTypingIndicator();
+      }
+      // Event listeners for chat functionality
+      uploadBtn.addEventListener("click", () => {
+        pdfUpload.click();
+      });
+
+      pdfUpload.addEventListener("change", async (e) => {
+        if (e.target.files.length > 0) {
+          const file = e.target.files[0];
+          fileName.textContent = file.name;
+          fileName.className = "file-name";
+
+          // Upload the PDF to the backend
+          const formData = new FormData();
+          formData.append("pdf", file);
+
+          try {
+            const res = await fetch("/upload_pdf", {
+              method: "POST",
+              body: formData,
+            });
+            const data = await res.json();
+            if (data.status === "success") {
+              enableInput();
+              addMessage(
+                "bot",
+                `I've processed "${file.name}". You can now ask questions about its content.`
+              );
+            } else {
+              addMessage("bot", `⚠️ Error: ${data.message}`);
+            }
+          } catch (err) {
+            addMessage("bot", `⚠️ Error uploading PDF: ${err.message}`);
+          }
+        }
+      });
+
+      sendBtn.addEventListener("click", sendQuestion);
+
+      userInput.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") sendQuestion();
+      });
+
+      // Add suggestion click handlers
+      suggestions.forEach((suggestion) => {
+        suggestion.addEventListener("click", () => {
+          if (!userInput.disabled) {
+            userInput.value = suggestion.textContent;
+            sendQuestion();
+          }
+        });
+      });
+
+      // Simulate initial bot message for demo purposes
+      setTimeout(() => {
+        if (document.querySelector(".welcome-message")) {
+          // This will only run if we're on the chat page with a selected model
+          if (selectedModel) {
+            addMessage(
+              "bot",
+              `Hello! I'm ${models[selectedModel].name}, your PDF assistant. Please upload a PDF file to get started.`
+            );
+          }
+        }
+      }, 1500);
+    </script>
+  </body>
+</html>
